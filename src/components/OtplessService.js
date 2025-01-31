@@ -1,5 +1,16 @@
+let sdk; // Declare globally
+
+async function loadSDK() {
+  if (!sdk) {
+    sdk = await import("your-sdk-library"); // Dynamically import SDK
+  }
+  return sdk;
+}
+
 export const validateToken = async (token) => {
   try {
+    await loadSDK(); // Ensure SDK is loaded before making the request
+
     const response = await fetch("https://your-backend.com/validate", {
       method: "POST",
       headers: {
@@ -8,9 +19,13 @@ export const validateToken = async (token) => {
       body: JSON.stringify({ token }),
     });
 
-    const data = await response.json();
-    return data;
+    if (!response.ok) {
+      throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+    }
+
+    return await response.json();
   } catch (error) {
     console.error("Token validation failed:", error);
+    return { error: "Validation failed", details: error.message };
   }
 };
